@@ -3,30 +3,36 @@
 
 import os
 import sys
+import argparse
+from pathlib import Path
 
-fd = open(sys.argv[1], "r")  # TODO use pathlib here, TODO use argparse for sys.argv
-data = fd.read()
-fd.close()
+def main():
+    parser = argparse.ArgumentParser(description="Parse CSVs")
+    parser.add_argument("file", help="The CSV-file")
+    args = parser.parse_args()
 
-csv_data = dict()
+    filepath = Path(args.file)
+    if not filepath.exists():
+        print("File does not exist")
+        sys.exit(1)
 
-counter = 0  # TODO find built-in to not have to count
-for line in data.splitlines(keepends=False):
-    values = line.split(",")
-    for value in values:  # TODO I can do this in one line, don't I (list comprehension)
-        values[values.index(value)] = value.strip()
-    csv_data[counter] = values
-    counter += 1
+    fd = filepath.open("r")
+    data = fd.read()
+    fd.close()
 
-if not csv_data:  # TODO Earlier point might need exit too ...
-    print("Empty file")
-    sys.exit(1)
+    csv_data = dict()
 
+    for line in data.splitlines(keepends=False):
+        values = line.split(",")
+        values = [v.strip() for v in values]
+        csv_data[len(csv_data)] = values
 
-header = csv_data.pop(0)
-format_string = "{}\t"  # TODO Again, maybe one liner?? (str.join, list comprehension)
-for header_name in header:
-    format_string += "{}: {{}}\t\t".format(header_name)
+    if not csv_data:
+        print("Empty file")
+        sys.exit(1)
 
-for line_number, values in csv_data.items():
-    print(format_string.format(line_number, *values))
+    for line_number, values in csv_data.items():
+        print(f"{line_number}: {'\t\t'.join(values)}")
+
+if __name__ == "__main__":
+    main()
